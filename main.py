@@ -27,8 +27,12 @@ def strassen(a, b):
     ca,cb = len(a[0]),len(b[0])
     dim = max([ra,rb,ca,cb])
 
-
-    #TODO - Criar formar de achar potencia de 2 mais proxima, evitando matrizes impares
+    n = 1
+    while n<dim:
+        if dim % 2 == 0:
+            break
+        n += 1
+        dim = 2**n
 
     #TODO - Criar metodo para redimensionar preenchendo de zero os espacos vazios
 
