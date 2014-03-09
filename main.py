@@ -53,8 +53,9 @@ def strassen(a, b):
         return [ a11*b11 + a12*b21 , a11*b12+a12*b22], [ a21*b11+a22*b21, a21*b12+a22*b22]
     elif dim == 2:
         # input_m = a11, a12, a21, a22, b11, b12, b21, b22
-        m = calcula_m(a11, a12, a21, a22, b11, b12, b21, b22)
-        c = 0 #calcula_c(m)
+        m1,m2,m3,m4,m5,m6,m7 = calcula_m(a11, a12, a21, a22, b11, b12, b21, b22)
+        c11,c12,c21,c22 = calcula_c(m1,m2,m3,m4,m5,m6,m7)
+        c = [[c11,c12],[c21,c22]]
 
     else:
         c11 = strassen(a11,b11)
