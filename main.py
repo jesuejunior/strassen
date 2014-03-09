@@ -1,3 +1,5 @@
+import fileinput
+import re
 import time
 
 def calcula_m(a11, a12, a21, a22, b11, b12, b21, b22):
@@ -41,12 +43,11 @@ def strassen(a, b):
     b22 = b[dim/2+1:][dim/2+1:]
 
 
-    dimensao = 0 #calcula_dim(a,b)
     c = None
 
-    if dimensao == 1:
+    if dim == 1:
         return [ a11*b11 + a12*b21 , a11*b12+a12*b22], [ a21*b11+a22*b21, a21*b12+a22*b22]
-    elif dimensao == 2:
+    elif dim == 2:
         # input_m = a11, a12, a21, a22, b11, b12, b21, b22
         m = calcula_m(a11, a12, a21, a22, b11, b12, b21, b22)
         c = 0 #calcula_c(m)
@@ -60,14 +61,35 @@ def strassen(a, b):
         c = [[c11, c12], [ c21, c22]]
     return c
 
+def clear_and_convert_to_int(line):
+    line = re.findall("\d+" , line)
+    line = map(lambda x: int(x), line)
+    return line
+
+def execute():
+    if not fileinput.input():
+        print "Ta de pegadinha? Input vazio..."
+    else:
+        a = []
+        b = []
+        jump = False
+        for line in fileinput.input():
+            if line == '\n':
+                jump = True
+            if not jump:
+                a.append(clear_and_convert_to_int(line))
+            else:
+                b.append(clear_and_convert_to_int(line))
+        b.pop(0)
 
 
+
+        print strassen(a,b)
 
 
 
 if __name__ == "__main__":
         end = time.time()
-
-        #Executa aqui
+        execute()
         start = time.time()
         print "Tempo de execucao: ", end-start
