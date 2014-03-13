@@ -24,7 +24,7 @@ def calcula_c(m1,m2,m3,m4,m5,m6,m7):
 
 def strassen(a, b):
     ra,rb = len(a),len(b)
-    ca,cb = len(a[0]),len(b[0])
+    ca,cb = len(a[0]) or 0,len(b[0]) or 0
     dim = max([ra,rb,ca,cb])
 
     n = 1
@@ -34,26 +34,38 @@ def strassen(a, b):
         n += 1
         dim = 2**n
 
-    #TODO - Criar metodo para redimensionar preenchendo de zero os espacos vazios
+    d = dim/2
 
-    a11 = a[0:dim/2][0:dim/2]
-    a12 = a[0:dim/2][dim/2+1:]
-    a21 = a[dim/2+1:][0:dim/2]
-    a22 = a[dim/2+1:][dim/2+1:]
+    #Redimensionando as matrizes preenchendo com zero e tranformando em quadrada
+    a11 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    a12 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    a21 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    a22 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
 
-    b11 = b[0:dim/2][0:dim/2]
-    b12 = b[0:dim/2][dim/2+1:]
-    b21 = b[dim/2+1:][0:dim/2]
-    b22 = b[dim/2+1:][dim/2+1:]
+    b11 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    b12 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    b21 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    b22 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
 
 
-    c = None
+    for i in xrange(0, d):
+        for j in xrange(0, d):
+            a11[i][j] = a[i][j]
+            a12[i][j] = a[i][j + d]
+            a21[i][j] = a[i + d][j]
+            a22[i][j] = a[i + d][j + d]
+
+            b11[i][j] = b[i][j]
+            b12[i][j] = b[i][j + d]
+            b21[i][j] = b[i + d][j]
+            b22[i][j] = b[i + d][j + d]
+
 
     if dim == 1:
         return [ a11*b11 + a12*b21 , a11*b12+a12*b22], [ a21*b11+a22*b21, a21*b12+a22*b22]
     elif dim == 2:
-        # input_m = a11, a12, a21, a22, b11, b12, b21, b22
-        m1,m2,m3,m4,m5,m6,m7 = calcula_m(a11, a12, a21, a22, b11, b12, b21, b22)
+        aa = [a11[0][0], a12[0][0], a21[0][0], a22[0][0], b11[0][0], b12[0][0], b21[0][0], b22[0][0]]
+        m1,m2,m3,m4,m5,m6,m7 = calcula_m(*aa)
         c11,c12,c21,c22 = calcula_c(m1,m2,m3,m4,m5,m6,m7)
         c = [[c11,c12],[c21,c22]]
 
