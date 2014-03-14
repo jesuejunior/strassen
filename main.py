@@ -1,30 +1,36 @@
 import fileinput
 import re
 import time
+from numpy import array, zeros
+
 
 def calcula_m(a11, a12, a21, a22, b11, b12, b21, b22):
 
-    m1 = (a11+a22)*(b11+b22)
-    m2 = (a21+a22)*b11
-    m3 = a11*(b12-b22)
-    m4 = a22*(b21-b11)
-    m5 = (a11+a12)*b22
-    m6 = (a21-a11)*(b11+b12)
-    m7 = (a12-a22)*(b21+b22)
+    m1 = strassen(a11+a22, b11+b22)
+    m2 = strassen(a21+a22, b11)
+    m3 = strassen(a11, b12-b22)
+    m4 = strassen(a22, b21-b11)
+    m5 = strassen(a11+a12, b22)
+    m6 = strassen(a21-a11, b11+b12)
+    m7 = strassen(a12-a22, b21+b22)
 
     return m1,m2,m3,m4,m5,m6,m7
 
 def calcula_c(m1,m2,m3,m4,m5,m6,m7):
-    c11 = m1+m4-m5+m7
-    c12 = m3+m5
-    c21 = m2+m4
-    c22 = m1-m2+m3+m6
+    return array([
+        [m1+m4-m5+m7, m3+m5],
+        [m2+m4, m1-m2+m3+m6]
+    ])
 
-    return c11,c12,c21,c22
+def calcula_base(a11, a12, a21, a22, b11, b12, b21, b22):
+    return [[a11 * b11 + a12 * b21, a11 * b12 + a12 * b22], [a21 * b11 + a22 * b21, a21 * b12 + a22 * b22]]
+
 
 def strassen(a, b):
-    ra,rb = len(a),len(b)
-    ca,cb = len(a[0]) or 0,len(b[0]) or 0
+    a = array(a)
+    b = array(b)
+    ra, ca = a.shape
+    rb, cb = b.shape
     dim = max([ra,rb,ca,cb])
 
     n = 1
@@ -36,47 +42,36 @@ def strassen(a, b):
 
     d = dim/2
 
+    if d == 1:
+        return array([
+            [a[0,0]*b[0,0] + a[0,1]*b[1,0], a[0,0]*b[0,1] + a[0,1]*b[1,1]],
+            [a[1,0]*b[0,0] + a[1,1]*b[1,0], a[1,0]*b[0,1] + a[1,1]*b[1,1]]
+        ])
+
     #Redimensionando as matrizes preenchendo com zero e tranformando em quadrada
-    a11 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    a12 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    a21 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    a22 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    a11 = zeros((d, d))
+    a12 = zeros((d, d))
+    a21 = zeros((d, d))
+    a22 = zeros((d, d))
 
-    b11 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    b12 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    b21 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
-    b22 = [[0 for j in xrange(0, d)] for i in xrange(0, d)]
+    b11 = zeros((d, d))
+    b12 = zeros((d, d))
+    b21 = zeros((d, d))
+    b22 = zeros((d, d))
 
+    a11[:, :] = a[:d, :d]
+    a12[:d, :ca-d+1] = a[:d, d:ca]
+    a21[:ra-d+1, :] = a[d:ra-d+1, :d]
+    a22[:ra-d+1, :ca-d+1] = a[d:ra-d+1, d:ca-d+1]
 
-    for i in xrange(0, d):
-        for j in xrange(0, d):
-            a11[i][j] = a[i][j]
-            a12[i][j] = a[i][j + d]
-            a21[i][j] = a[i + d][j]
-            a22[i][j] = a[i + d][j + d]
+    b11[:, :] = b[:d, :d]
+    b12[:d, :cb-d+1] = b[:d, d:cb]
+    b21[:rb-d+1, :] = b[d:rb-d+1, :d]
+    b22[:rb-d+1, :cb-d+1] = b[d:rb-d+1, d:cb-d+1]
 
-            b11[i][j] = b[i][j]
-            b12[i][j] = b[i][j + d]
-            b21[i][j] = b[i + d][j]
-            b22[i][j] = b[i + d][j + d]
-
-
-    if dim == 1:
-        return [ a11*b11 + a12*b21 , a11*b12+a12*b22], [ a21*b11+a22*b21, a21*b12+a22*b22]
-    elif dim == 2:
-        aa = [a11[0][0], a12[0][0], a21[0][0], a22[0][0], b11[0][0], b12[0][0], b21[0][0], b22[0][0]]
-        m1,m2,m3,m4,m5,m6,m7 = calcula_m(*aa)
-        c11,c12,c21,c22 = calcula_c(m1,m2,m3,m4,m5,m6,m7)
-        c = [[c11,c12],[c21,c22]]
-
-    else:
-        c11 = strassen(a11,b11)
-        c12 = strassen(a12,b12)
-        c21 = strassen(a21,b21)
-        c22 = strassen(a22,b22)
-
-        c = [[c11, c12], [ c21, c22]]
-    return c
+    aa = [a11, a12, a21, a22, b11, b12, b21, b22]
+    m1,m2,m3,m4,m5,m6,m7 = calcula_m(*aa)
+    return calcula_c(m1,m2,m3,m4,m5,m6,m7)
 
 def clear_and_convert_to_int(line):
     line = re.findall("\d+" , line)
@@ -98,8 +93,6 @@ def execute():
             else:
                 b.append(clear_and_convert_to_int(line))
         b.pop(0)
-
-
 
         print strassen(a,b)
 
